@@ -33,7 +33,7 @@ jobs:
       - name: Install Dependencies
         run: |
           cd src
-          npm ci
+          npm install
 
       # 5. Jalankan Script Fetch
       - name: Fetch Data
@@ -53,4 +53,3 @@ jobs:
           git add .
           git diff-index --quiet HEAD || git commit -m "AUTO: Update YouTube Data [skip ci]"
           git push
-          
