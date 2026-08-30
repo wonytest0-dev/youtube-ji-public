@@ -1,0 +1,56 @@
+name: Fetch YouTube Data
+
+on:
+  repository_dispatch:
+    types: [trigger-fetch]
+  workflow_dispatch:
+
+jobs:
+  run-fetch:
+    runs-on: ubuntu-latest
+    steps:
+      # 1. Checkout Private Repo (mengambil fetch.js & package.json)
+      - name: Checkout Private Repo
+        uses: actions/checkout@v4
+        with:
+          repository: 'wonytest0-dev/youtubeji-private'
+          token: ${{ secrets.PRIVATE_REPO_TOKEN }}
+          path: 'src'
+
+      # 2. Checkout Public Repo (lokasi penyimpanan data.json)
+      - name: Checkout Public Repo
+        uses: actions/checkout@v4
+        with:
+          path: 'public-data'
+
+      # 3. Setup Node.js
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      # 4. Install Dependencies
+      - name: Install Dependencies
+        run: |
+          cd src
+          npm ci
+
+      # 5. Jalankan Script Fetch
+      - name: Fetch Data
+        env:
+          YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
+          PUBLIC_REPO_DIR: '../public-data'
+        run: |
+          cd src
+          node scripts/fetch.js
+
+      # 6. Commit & Push data.json ke Public Repo ini
+      - name: Commit and Push Data
+        run: |
+          cd public-data
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add .
+          git diff-index --quiet HEAD || git commit -m "AUTO: Update YouTube Data [skip ci]"
+          git push
+          
